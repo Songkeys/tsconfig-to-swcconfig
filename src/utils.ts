@@ -16,14 +16,16 @@ export function getTSOptions(
 	return config.compilerOptions ?? null
 }
 
-export function getPackageJson(cwd: string = process.cwd()) {
-	const result = findUpSync('package.json', { cwd })
+export function getPackageJson(
+	packageJsonPath: string | undefined,
+	cwd: string,
+): { type?: string } {
+	const result = findUpSync(packageJsonPath || 'package.json', { cwd })
 	if (!result) {
-		return null
+		return {}
 	}
 
-	const packageJson = JSON.parse(fs.readFileSync(result, 'utf-8'))
-	return packageJson
+	return JSON.parse(fs.readFileSync(result, 'utf-8'))
 }
 
 // the following code is copied from https://github.com/sindresorhus/find-up-simple/blob/ec263e63e3198ce3cdadd49decb9940ac9997bf3/index.js#L32C1-L53C2

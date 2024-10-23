@@ -6,13 +6,23 @@ import type swcType from '@swc/core'
 import { convert } from './index'
 
 const {
-	values: { filename, cwd, output, help, set: overrideValues },
+	values: {
+		filename,
+		'package-json': packageJson,
+		cwd,
+		output,
+		help,
+		set: overrideValues,
+	},
 } = parseArgs({
 	options: {
 		filename: {
 			type: 'string',
 			short: 'f',
 			default: 'tsconfig.json',
+		},
+		'package-json': {
+			type: 'string',
 		},
 		cwd: {
 			type: 'string',
@@ -42,7 +52,8 @@ Usage: tsconfig-to-swcconfig [options]
 Alias: t2s [options]
 
 Options:
-  -f, --filename <filename>  filename to tsconfig (default: "tsconfig.json")
+  -f, --filename <filename>  path to tsconfig (default: "tsconfig.json")
+  --package-json <package.json> path to package.json (default: search cwd)
   -c, --cwd <cwd>            cwd (default: "${process.cwd()}")
   -o, --output <output>      output file (default: stdout)
   -s, --set <name>=<value>   set additional swcrc options
@@ -75,7 +86,7 @@ const overrides = overrideValues?.reduce((all, a) => {
 	return all
 }, {} as any) as swcType.Options
 
-const swcConfig = convert(filename, cwd, overrides)
+const swcConfig = convert(filename, cwd, overrides, packageJson)
 
 if (output) {
 	writeFile(output, JSON.stringify(swcConfig, null, 2), (err) => {

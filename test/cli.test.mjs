@@ -137,4 +137,26 @@ describe('cli', { concurrency: true }, () => {
 		match(stdout, /"not1": "1x"/)
 		match(stdout, /"not2": "x2"/)
 	})
+
+	it('should convert tsconfig.json with package.json path', async () => {
+		const { stdout, stderr } = await pExe('node', [
+			'dist/cli.js',
+			'--filename',
+			resolve(
+				__dirname,
+				'fixtures',
+				'tsconfig-with-package-json',
+				'tsconfig.json',
+			),
+			'--package-json',
+			resolve(
+				__dirname,
+				'fixtures',
+				'tsconfig-with-package-json',
+				'package.json',
+			),
+		])
+		strictEqual(stderr, '')
+		match(stdout, /"type": "es6"/)
+	})
 })

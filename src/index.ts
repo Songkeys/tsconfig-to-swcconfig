@@ -12,15 +12,17 @@ export function convert(
 	cwd: string = process.cwd(),
 	/** swc configs to override */
 	swcOptions?: swcType.Options,
+	packageJsonPath?: string | undefined,
 ): swcType.Options {
 	const tsOptions = getTSOptions(filename, cwd) ?? {}
-	return convertTsConfig(tsOptions, swcOptions, cwd)
+	return convertTsConfig(tsOptions, swcOptions, cwd, packageJsonPath)
 }
 
 export function convertTsConfig(
 	tsOptions: TsConfigJson.CompilerOptions,
 	swcOptions: swcType.Options = {},
 	cwd: string = process.cwd(),
+	packageJsonPath?: string | undefined,
 ): swcType.Options {
 	// https://json.schemastore.org/tsconfig
 	const {
@@ -51,7 +53,7 @@ export function convertTsConfig(
 		{
 			sourceMaps: sourceMap,
 			module: {
-				type: moduleType(module, cwd),
+				type: moduleType(module, getPackageJson(packageJsonPath, cwd)),
 				strictMode: alwaysStrict || !noImplicitUseStrict,
 				noInterop: !esModuleInterop,
 			} satisfies swcType.ModuleConfig,
@@ -95,29 +97,20 @@ type Module = typeof availableModuleTypes[number]
 
 function moduleType(
 	m: TsConfigJson.CompilerOptions.Module | undefined,
-	cwd: string = process.cwd(),
+	packageJson: { type?: string },
 ): Module {
 	const module = (m as unknown as string)?.toLowerCase()
 	if (availableModuleTypes.includes(module as any)) {
 		return module as Module
 	}
 
-	const es6Modules = [
-		'es2015',
-		'es2020',
-		'es2022',
-		'esnext',
-		'none',
-	] as const
+	const es6Modules = ['es2015', 'es2020', 'es2022', 'esnext', 'none'] as const
 	if (es6Modules.includes(module as any)) {
 		return 'es6'
 	}
 
-	const nodeModules = [
-		'node16',
-		'nodenext',
-	] as const
-	if (nodeModules.includes(module as any) && getPackageJson(cwd)?.type === 'module') {
+	const nodeModules = ['node16', 'nodenext'] as const
+	if (nodeModules.includes(module as any) && packageJson.type === 'module') {
 		return 'es6'
 	}
 
